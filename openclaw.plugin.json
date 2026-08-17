@@ -1,0 +1,49 @@
+{
+  "id": "search-subagent",
+  "name": "Mixedbread Search Subagent",
+  "description": "Registers the Mixedbread Toast-1 model provider and a search_subagent tool that delegates local grep/ripgrep searches to a Toast-1 subagent.",
+  "version": "0.1.0",
+  "providers": [
+    "mixedbread"
+  ],
+  "contracts": {
+    "tools": [
+      "search_subagent"
+    ]
+  },
+  "setup": {
+    "providers": [
+      {
+        "id": "mixedbread",
+        "envVars": [
+          "MIXEDBREAD_API_KEY"
+        ]
+      }
+    ]
+  },
+  "activation": {
+    "onStartup": true
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "baseUrl": {
+        "type": "string",
+        "description": "Mixedbread API base URL. Defaults to https://api.mixedbread.com/v1."
+      },
+      "apiKey": {
+        "type": "string",
+        "description": "Mixedbread API key. Prefer the MIXEDBREAD_API_KEY env var or `openclaw models auth login` over storing the key here."
+      },
+      "agentId": {
+        "type": "string",
+        "description": "Agent id the search subagent runs as when that agent exists in agents.list. Defaults to \"search\"; falls back to the calling agent otherwise."
+      },
+      "timeoutSeconds": {
+        "type": "number",
+        "description": "Maximum seconds to wait for a search subagent run. Defaults to 180."
+      }
+    }
+  }
+}

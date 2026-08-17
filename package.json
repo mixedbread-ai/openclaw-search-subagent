@@ -1,0 +1,52 @@
+{
+  "name": "@mixedbread/openclaw-search-subagent",
+  "version": "0.1.0",
+  "description": "OpenClaw plugin: Mixedbread Toast-1 provider plus a search_subagent tool that delegates local grep searches to a Toast-1 subagent.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run --config ./vitest.config.ts",
+    "validate": "npm run build && clawhub package validate . --out .clawhub-validation"
+  },
+  "files": [
+    "dist",
+    "src",
+    "openclaw.plugin.json",
+    "README.md"
+  ],
+  "dependencies": {
+    "typebox": "^1.3.3"
+  },
+  "peerDependencies": {
+    "openclaw": ">=2026.7.1-2"
+  },
+  "peerDependenciesMeta": {
+    "openclaw": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "openclaw": "latest",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  },
+  "openclaw": {
+    "extensions": [
+      "./src/index.ts"
+    ],
+    "install": {
+      "clawhubSpec": "clawhub:mixedbread/openclaw-search-subagent",
+      "defaultChoice": "clawhub",
+      "minHostVersion": ">=2026.7.1-2"
+    },
+    "compat": {
+      "pluginApi": ">=2026.7.1-2"
+    },
+    "build": {
+      "openclawVersion": "2026.7.1-2"
+    },
+    "release": {
+      "publishToClawHub": true
+    }
+  }
+}
