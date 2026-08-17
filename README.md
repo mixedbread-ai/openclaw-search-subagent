@@ -1,0 +1,197 @@
+# @mixedbread/openclaw-search-subagent
+
+An [OpenClaw](https://openclaw.ai) plugin that turns [Mixedbread](https://mixedbread.com)'s
+**Toast-1** model into a local-search subagent. It registers two things:
+
+- **`mixedbread` model provider** — Toast-1 (`mixedbread/toast-1`) via the
+  OpenAI-compatible endpoint at `https://api.mixedbread.com/v1`, with API-key
+  auth (`MIXEDBREAD_API_KEY`, or `openclaw models auth login`).
+- **`search_subagent` agent tool** — lets any agent delegate a local file/code
+  search. The tool spawns a subagent session (`agent:search:subagent:<uuid>`)
+  running Toast-1, which searches the workspace with ripgrep/grep (read-only)
+  and returns `path:line` findings inline to the calling agent.
+
+Why: your main agent (e.g. Claude) stays focused while a cheap, fast,
+search-specialized model does the grepping.
+
+## How it works
+
+```
+main agent ──search_subagent({task})──▶ plugin tool
+                                          │ spawns agent:search:subagent:<uuid>
+                                          ▼
+                              search agent (mixedbread/toast-1)
+                                          │ rg / grep via exec (read-only)
+                                          ▼
+                              findings: path:line + snippets ──▶ tool result
+```
+
+The tool has two transports and picks automatically:
+
+1. **Gateway runtime** (`api.runtime.subagent.run`) when executing inside the
+   Gateway process.
+2. **CLI fallback** (`openclaw agent --agent search --session-key …`) when the
+   tool executes in a bridged process (e.g. the claude-cli / Claude Code MCP
+   bridge), where the in-process subagent runtime is unavailable. A
+   `sessions_spawn`-style child would inherit the CLI harness's tool ceiling
+   and end up with no callable tools; the CLI turn does not.
+
+## Install
+
+```bash
+# From ClawHub (once published)
+openclaw plugins install clawhub:mixedbread/openclaw-search-subagent
+
+# Or from a local checkout
+openclaw plugins install --link /path/to/mixedbread-openclaw-search-subagent
+
+openclaw plugins enable search-subagent
+openclaw gateway restart
+```
+
+## Configure
+
+### 1. API key
+
+```bash
+export MIXEDBREAD_API_KEY=mxb_...        # or:
+openclaw models auth login               # pick Mixedbread → API key
+```
+
+### 2. Allow the tool (required with `tools.profile: "coding"`)
+
+The default `coding` tool profile is a base allowlist that **excludes plugin
+tools**. Add the tool to `alsoAllow` in `~/.openclaw/openclaw.json`:
+
+```json5
+{
+  "tools": {
+    "profile": "coding",
+    "alsoAllow": ["search_subagent"]
+  }
+}
+```
+
+### 3. Dedicated search agent (recommended)
+
+The tool targets an agent named `search` (configurable) so the subagent runs
+with a minimal read-only toolset and Toast-1 as its pinned model:
+
+```json5
+{
+  "agents": {
+    "list": [
+      { "id": "main", "default": true },
+      {
+        "id": "search",
+        "name": "Search",
+        "description": "Read-only local search agent powered by Mixedbread Toast-1.",
+        "model": "mixedbread/toast-1",
+        "tools": { "profile": "coding", "allow": ["read", "exec"] }
+      }
+    ]
+  }
+}
+```
+
+If no `search` agent exists, the tool falls back to the calling agent with a
+`mixedbread/toast-1` model override. Plugin-initiated model overrides are
+policy-gated — authorize them once:
+
+```json5
+{
+  "plugins": {
+    "entries": {
+      "search-subagent": {
+        "enabled": true,
+        "subagent": {
+          "allowModelOverride": true,
+          "allowedModels": ["mixedbread/toast-1"]
+        }
+      }
+    }
+  }
+}
+```
+
+### 4. Plugin options (all optional)
+
+Set under `plugins.entries.search-subagent.config`:
+
+| Key              | Default                          | Description                                          |
+| ---------------- | -------------------------------- | ---------------------------------------------------- |
+| `baseUrl`        | `https://api.mixedbread.com/v1`  | Mixedbread API base URL.                             |
+| `apiKey`         | –                                | API key. Prefer the env var / auth login over this.  |
+| `agentId`        | `search`                         | Agent the subagent runs as (when configured).        |
+| `timeoutSeconds` | `180`                            | Max wait for one search run.                         |
+
+## Use
+
+Ask your main agent things like:
+
+> Use the search_subagent tool with task: "Find where HTTP retries are configured and report path:line."
+
+The tool parameters:
+
+| Param   | Required | Description                                                    |
+| ------- | -------- | -------------------------------------------------------------- |
+| `task`  | yes      | Natural-language search task.                                  |
+| `path`  | no       | Directory to search; defaults to the calling agent's workspace. |
+| `model` | no       | Override as `provider/model`; defaults to `mixedbread/toast-1`. |
+
+## Model
+
+| Model                | Context | Max output | Notes                                   |
+| -------------------- | ------- | ---------- | --------------------------------------- |
+| `mixedbread/toast-1` | 131k    | 8000       | Search-specialized; emits reasoning.    |
+
+## Development
+
+```bash
+npm install
+npm test          # vitest unit tests
+npm run build     # tsc → dist/ (the loader runs dist/index.js)
+```
+
+Local test loop against a real gateway:
+
+```bash
+openclaw plugins install --link .
+openclaw plugins enable search-subagent
+npm run build && openclaw gateway restart   # rebuild + restart after every change
+openclaw agent --session-key "agent:main:t-$(date +%s)" \
+  -m "Use the search_subagent tool with task: 'find usages of process.env'" --json
+```
+
+## Publish
+
+```bash
+npm i -g clawhub
+clawhub login
+clawhub package validate .
+clawhub package publish mixedbread/openclaw-search-subagent --dry-run
+clawhub package publish mixedbread/openclaw-search-subagent
+```
+
+## Troubleshooting
+
+- **Model can't see `search_subagent`** — add it to `tools.alsoAllow` (step 2);
+  the `coding` profile excludes plugin tools by default.
+- **`plugin tool name conflict (search-subagent): search_subagent`** in
+  `openclaw doctor` — another enabled plugin registers the same tool name;
+  disable one of them.
+- **`provider/model override is not authorized for this plugin subagent run`** —
+  add the `plugins.entries.search-subagent.subagent` block (step 3), or define
+  the `search` agent so no override is needed.
+- **Tool times out** — long no-hit searches can exceed the CLI-harness tool
+  timeout; narrow the task or raise `timeoutSeconds`.
+- **Provider auth** — check `openclaw models list` shows `mixedbread/toast-1`
+  as `configured`, and that `MIXEDBREAD_API_KEY` is set for the gateway
+  process (`env` block in `openclaw.json` or shell env).
+
+## Security notes
+
+- The subagent's system prompt is read-only by contract: search with
+  rg/grep, never modify files. Enforce it structurally by giving the `search`
+  agent only `read` + `exec` (as above).
+- Never commit API keys. Use `MIXEDBREAD_API_KEY` or OpenClaw auth profiles.
