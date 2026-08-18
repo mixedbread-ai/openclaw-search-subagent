@@ -109,5 +109,10 @@ These cost real debugging time; don't relearn them:
 
 ## Release
 
-Bump `version` in both `package.json` and `openclaw.plugin.json`, then
-`npm run validate` and `clawhub package publish mixedbread/openclaw-search-subagent`.
+ClawHub packs from the **GitHub repo at `main`** (github:mixedbread-ai/openclaw-search-subagent),
+not the local working tree, and requires compiled runtime output — which is
+why `dist/` is committed (CI fails if it drifts from `src/`). To release:
+
+1. Bump `version` in both `package.json` and `openclaw.plugin.json`.
+2. `npm test && npm run build`, commit (including `dist/`), push.
+3. `clawhub package publish mixedbread-ai/openclaw-search-subagent --dry-run`, then without `--dry-run`.
