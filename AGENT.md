@@ -19,9 +19,12 @@ memory or blog posts.
 ```
 openclaw.plugin.json   # manifest: id, providers, contracts.tools, setup, configSchema
 package.json           # openclaw.extensions entry point + build/compat metadata
-src/index.ts           # definePluginEntry → wires provider + tool
+setup-api.ts           # setup-surface entry: provider auth discovery, config migration, auto-enable
+src/index.ts           # definePluginEntry → wires provider + tool + CLI + migration
 src/config.ts          # plugin config parsing + shared constants
-src/provider.ts        # registerProvider: auth method + catalog (toast-1)
+src/provider.ts        # registerProvider: auth method (applyConfig defaults) + catalog (toast-1)
+src/setup.ts           # apply/remove config defaults (idempotent, both directions)
+src/cli.ts             # `openclaw search-subagent teardown` (uninstall counterpart)
 src/tool.ts            # registerTool factory: spawn subagent, extract reply, CLI fallback
 src/*.test.ts          # vitest unit tests (mock OpenClawPluginApi)
 ```

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { OpenClawConfig } from "openclaw/plugin-sdk/plugin-entry";
-import { applySearchSubagentDefaults } from "./setup.js";
+import { applySearchSubagentDefaults, removeSearchSubagentDefaults } from "./setup.js";
 
 describe("applySearchSubagentDefaults", () => {
   it("bootstraps an empty config with allowlist, search agent, and override policy", () => {
@@ -72,5 +72,42 @@ describe("applySearchSubagentDefaults", () => {
 
     expect((input as Record<string, any>).tools.alsoAllow).toEqual([]);
     expect((input as Record<string, any>).agents).toBeUndefined();
+  });
+});
+
+describe("removeSearchSubagentDefaults", () => {
+  it("reverts everything applySearchSubagentDefaults wrote", () => {
+    const applied = applySearchSubagentDefaults({
+      agents: {
+        defaults: { models: { "claude-cli/claude-opus-4-8": {} }, subagents: { allowAgents: ["main"] } },
+        list: [{ id: "main" }],
+      },
+    } as OpenClawConfig)!.config;
+
+    const removed = removeSearchSubagentDefaults(applied);
+
+    expect(removed).not.toBeNull();
+    const cfg = removed!.config as Record<string, any>;
+    expect(cfg.tools.alsoAllow).toBeUndefined();
+    expect(cfg.agents.list).toEqual([{ id: "main" }]);
+    expect(cfg.agents.defaults.models).toEqual({ "claude-cli/claude-opus-4-8": {} });
+    expect(cfg.agents.defaults.subagents.allowAgents).toEqual(["main"]);
+    expect(cfg.plugins.entries["search-subagent"].subagent).toBeUndefined();
+    expect(removeSearchSubagentDefaults(removed!.config)).toBeNull();
+  });
+
+  it("returns null when there is nothing to revert", () => {
+    expect(removeSearchSubagentDefaults({} as OpenClawConfig)).toBeNull();
+  });
+
+  it("keeps a search agent the user re-pointed to another provider", () => {
+    const result = removeSearchSubagentDefaults({
+      agents: { list: [{ id: "search", model: "anthropic/claude-sonnet-5" }] },
+      tools: { alsoAllow: ["search_subagent"] },
+    } as unknown as OpenClawConfig);
+
+    const cfg = result!.config as Record<string, any>;
+    expect(cfg.agents.list).toEqual([{ id: "search", model: "anthropic/claude-sonnet-5" }]);
+    expect(cfg.tools.alsoAllow).toBeUndefined();
   });
 });

@@ -1,4 +1,5 @@
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
+import { registerSearchSubagentCli } from "./cli.js";
 import { PLUGIN_ID, PROVIDER_ID, parsePluginConfig } from "./config.js";
 import { registerMixedbreadProvider } from "./provider.js";
 import { applySearchSubagentDefaults } from "./setup.js";
@@ -14,6 +15,7 @@ export default definePluginEntry({
     const config = parsePluginConfig(api.pluginConfig);
     registerMixedbreadProvider(api, config);
     registerSearchSubagentTool(api, config);
+    registerSearchSubagentCli(api);
     api.registerConfigMigration((cfg) => applySearchSubagentDefaults(cfg));
     api.registerAutoEnableProbe((ctx) => {
       if (ctx.env?.MIXEDBREAD_API_KEY) return "MIXEDBREAD_API_KEY is set";

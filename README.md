@@ -128,6 +128,21 @@ The tool parameters:
 | -------------------- | ------- | ---------- | --------------------------------------- |
 | `mixedbread/toast-1` | 131k    | 4096       | Search-specialized; emits reasoning.    |
 
+## Uninstall
+
+```bash
+openclaw search-subagent teardown       # reverts the config this plugin wrote
+openclaw plugins uninstall search-subagent
+openclaw gateway restart
+```
+
+`teardown` (add `--dry-run` to preview) removes the tool allowlist entry, the
+`search` agent (only while it still points at a mixedbread model), and the
+model-override authorization. `plugins uninstall` then removes the plugin
+entry, install record, and files. Left in place on purpose: your
+`models.providers.mixedbread` block and stored API key, since other tools may
+use them — the teardown output lists them with removal hints.
+
 ## Development
 
 ```bash

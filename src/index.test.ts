@@ -27,6 +27,7 @@ function registerWithMockApi(pluginConfig?: Record<string, unknown>) {
     registerAutoEnableProbe(probe: AutoEnableProbe) {
       probes.push(probe);
     },
+    registerCli() {},
   } as unknown as OpenClawPluginApi;
   entry.register?.(api);
   return { providers, tools, migrations, probes };
