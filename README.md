@@ -16,15 +16,10 @@ search-specialized model does the grepping.
 
 ## How it works
 
-```
-main agent ──search_subagent({task})──▶ plugin tool
-                                          │ spawns agent:search:subagent:<uuid>
-                                          ▼
-                              search agent (mixedbread/toast-1)
-                                          │ rg / grep via exec (read-only)
-                                          ▼
-                              findings: path:line + snippets ──▶ tool result
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/how-it-works-dark.svg">
+  <img alt="Flow: the main agent delegates a task to the search_subagent plugin tool, which spawns a subagent session running the search agent on mixedbread/toast-1. The search agent greps the workspace read-only (rg/grep) and findings flow back to the main agent as path:line references with snippets and a summary. The tool auto-selects its transport: gateway runtime in-process, or CLI fallback for bridged runs." src="docs/how-it-works-light.svg" width="100%">
+</picture>
 
 The tool has two transports and picks automatically:
 
