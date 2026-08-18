@@ -2,7 +2,7 @@
   "id": "search-subagent",
   "name": "Mixedbread Search Subagent",
   "description": "Registers the Mixedbread Toast-1 model provider and a search_subagent tool that delegates local grep/ripgrep searches to a Toast-1 subagent.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "providers": [
     "mixedbread"
   ],

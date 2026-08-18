@@ -1,6 +1,6 @@
 {
   "name": "@mixedbread/openclaw-search-subagent",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "OpenClaw plugin: Mixedbread Toast-1 provider plus a search_subagent tool that delegates local grep searches to a Toast-1 subagent.",
   "type": "module",
   "scripts": {

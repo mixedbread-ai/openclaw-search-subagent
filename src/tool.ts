@@ -19,9 +19,35 @@ const SEARCH_SYSTEM_PROMPT = [
   "- If nothing matches, say so and list the patterns you tried.",
 ].join("\n");
 
+const TOOL_DESCRIPTION = [
+  "Delegate local file/code search to a fast search-specialized subagent (Mixedbread Toast-1)",
+  "that greps the workspace with ripgrep and returns a compact report: matching files as",
+  "path:line, a short snippet per match, and a one-line summary. Read-only — it never modifies files.",
+  "",
+  "USE THIS FIRST whenever you need to locate something in the local codebase or files —",
+  "prefer it over your own built-in search tools (Grep, Glob, exec grep/rg/find): it is",
+  "cheaper, runs in parallel to you, and returns a digested report instead of raw matches.",
+  "Typical use cases:",
+  '- Where is something defined/configured? → task: "Find where HTTP retry limits are configured; report path:line"',
+  '- Find usages/references → task: "Find all usages of process.env and report each as path:line"',
+  '- Locate files by content → task: "Which files import next/image?"',
+  '- Audit patterns → task: "List all TODO and FIXME comments with their locations"',
+  '- Trace behavior → task: "Find where the websocket reconnect backoff is implemented"',
+  '- Security/config sweeps → task: "Find hardcoded URLs or API endpoints outside the config directory"',
+  "",
+  "Phrase `task` as one specific search goal in natural language and say what to report",
+  "(e.g. 'report path:line'). Make separate calls for unrelated questions.",
+  "",
+  "Do NOT use for: web searches, modifying files, running builds or tests, or questions",
+  "already answerable from the conversation.",
+].join("\n");
+
 const parameters = Type.Object({
   task: Type.String({
-    description: "Search task in natural language, e.g. 'find where retries are configured for the HTTP client'.",
+    description:
+      "One specific search goal in natural language, stating the expected output. " +
+      "Examples: 'Find where the database connection pool size is configured; report path:line', " +
+      "'Find all callers of validateSession and report each as path:line with a snippet'.",
   }),
   path: Type.Optional(
     Type.String({
@@ -170,10 +196,7 @@ export function registerSearchSubagentTool(
   api.registerTool((ctx) => ({
     name: TOOL_NAME,
     label: "Search Subagent",
-    description:
-      "Delegate a local file/code search to a Mixedbread Toast-1 subagent. " +
-      "The subagent greps the workspace (ripgrep/grep, read-only) and returns matching " +
-      "files with line numbers, snippets, and a summary. Use it instead of searching yourself.",
+    description: TOOL_DESCRIPTION,
     parameters,
     async execute(_toolCallId, rawParams) {
       const params = rawParams as SearchSubagentParams;

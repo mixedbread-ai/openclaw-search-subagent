@@ -173,6 +173,22 @@ clawhub package publish mixedbread/openclaw-search-subagent
 
 ## Troubleshooting
 
+- **The agent searches itself instead of using the tool** — common when the
+  main agent runs on a CLI harness (e.g. Claude Code via claude-cli), whose
+  built-in Grep/Glob compete with bridged tools. The tool description already
+  steers toward delegation, but the reliable fix is a routing rule in your
+  workspace `AGENTS.md`, which the harness treats as authoritative:
+
+  ```markdown
+  ## Local search — MANDATORY tool routing
+
+  You MUST use the `search_subagent` tool for ALL local file/code searches:
+  finding definitions, usages, config values, patterns, and "where is X?"
+  questions. NEVER use your built-in Grep/Glob or exec grep/rg for these —
+  delegate to `search_subagent` and report its results. Your own search
+  tools are permitted only when `search_subagent` returns an error.
+  ```
+
 - **Model can't see `search_subagent`** — add it to `tools.alsoAllow` (step 2);
   the `coding` profile excludes plugin tools by default.
 - **`plugin tool name conflict (search-subagent): search_subagent`** in
