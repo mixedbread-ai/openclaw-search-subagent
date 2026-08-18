@@ -143,7 +143,7 @@ The tool parameters:
 
 | Model                | Context | Max output | Notes                                   |
 | -------------------- | ------- | ---------- | --------------------------------------- |
-| `mixedbread/toast-1` | 131k    | 8000       | Search-specialized; emits reasoning.    |
+| `mixedbread/toast-1` | 131k    | 4096       | Search-specialized; emits reasoning.    |
 
 ## Development
 

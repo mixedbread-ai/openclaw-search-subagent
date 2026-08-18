@@ -29,7 +29,7 @@ export function buildProvider(config?: Pick<SearchSubagentConfig, "baseUrl" | "a
           cacheWrite: 0,
         },
         contextWindow: 131000,
-        maxTokens: 8000,
+        maxTokens: 4096,
       },
     ],
   };

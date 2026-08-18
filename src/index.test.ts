@@ -47,7 +47,7 @@ describe("buildProvider", () => {
         id: "toast-1",
         name: "Toast-1",
         contextWindow: 131000,
-        maxTokens: 8000,
+        maxTokens: 4096,
       }),
     ]);
   });
