@@ -12,6 +12,7 @@ export type SearchSubagentConfig = {
   apiKey?: string;
   agentId: string;
   timeoutSeconds: number;
+  cliFallback: boolean;
 };
 
 function readString(source: Record<string, unknown>, key: string): string | undefined {
@@ -34,5 +35,6 @@ export function parsePluginConfig(raw: Record<string, unknown> | undefined): Sea
     apiKey: readString(source, "apiKey"),
     agentId: readString(source, "agentId") ?? DEFAULT_SEARCH_AGENT_ID,
     timeoutSeconds: readPositiveNumber(source, "timeoutSeconds") ?? DEFAULT_TIMEOUT_SECONDS,
+    cliFallback: source.cliFallback !== false,
   };
 }

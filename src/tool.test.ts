@@ -126,6 +126,12 @@ describe(TOOL_NAME, () => {
     await expect(tool.execute("call-1", { task: "find retries" })).rejects.toThrow(/failed/);
   });
 
+  it("fails with a clear error when the runtime is unavailable and cliFallback is disabled", async () => {
+    const { tool } = buildTool({ runtimeUnavailable: true, pluginConfig: { cliFallback: false } });
+
+    await expect(tool.execute("call-1", { task: "find retries" })).rejects.toThrow(/CLI fallback is disabled/);
+  });
+
   it("falls back to the openclaw CLI when the runtime subagent is unavailable", async () => {
     const cliCalls: string[][] = [];
     const cliRunner: CliAgentRunner = async (args) => {

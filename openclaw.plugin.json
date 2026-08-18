@@ -46,6 +46,10 @@
       "timeoutSeconds": {
         "type": "number",
         "description": "Maximum seconds to wait for a search subagent run. Defaults to 180."
+      },
+      "cliFallback": {
+        "type": "boolean",
+        "description": "Allow falling back to the local `openclaw agent` CLI when the in-process subagent runtime is unavailable (CLI-harness bridged tool calls). Defaults to true; disabling breaks the tool on CLI-harness main agents."
       }
     }
   }

@@ -107,6 +107,7 @@ Set under `plugins.entries.search-subagent.config`:
 | `apiKey`         | –                                | API key. Prefer the env var / auth login over this.  |
 | `agentId`        | `search`                         | Agent the subagent runs as (when configured).        |
 | `timeoutSeconds` | `180`                            | Max wait for one search run.                         |
+| `cliFallback`    | `true`                           | Allow the `openclaw agent` CLI fallback for bridged tool calls. Disabling breaks the tool on CLI-harness main agents. |
 
 ## Use
 
@@ -198,4 +199,12 @@ openclaw agent --session-key "agent:main:t-$(date +%s)" \
 - The subagent's system prompt is read-only by contract: search with
   rg/grep, never modify files. Enforce it structurally by giving the `search`
   agent only `read` + `exec` (as above).
+- **Child-process usage** (flagged by security scanners): when a tool call is
+  bridged through a CLI harness, the plugin runs the host's own `openclaw`
+  CLI to reach the local Gateway, because the in-process subagent runtime
+  only exists inside the Gateway. It uses `execFile` with a constant binary
+  name and an argv array (no shell, no string interpolation — user input only
+  ever appears as an argument value), bounded by a timeout and output cap,
+  and grants no privileges beyond what the host already has. Set
+  `cliFallback: false` in the plugin config to disable it entirely.
 - Never commit API keys. Use `MIXEDBREAD_API_KEY` or OpenClaw auth profiles.

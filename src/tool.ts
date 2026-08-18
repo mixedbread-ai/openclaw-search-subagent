@@ -70,6 +70,17 @@ type SearchSubagentParams = {
 /** Runs `openclaw <args>` and resolves with stdout. Used when the in-process runtime is unavailable. */
 export type CliAgentRunner = (args: string[], timeoutMs: number) => Promise<string>;
 
+/**
+ * Security note (flagged by static analysis as child_process usage): this
+ * invokes the host's own `openclaw` CLI — constant binary name, argv array
+ * via execFile (no shell, no interpolation; user input only ever appears as
+ * an argument value), bounded by a timeout and output cap. It exists because
+ * tool calls bridged through CLI harnesses run outside the Gateway process,
+ * where `api.runtime.subagent` is unavailable; the CLI reaches the local
+ * Gateway over its authenticated WebSocket instead. It grants no privileges
+ * beyond what the plugin's host already has, and can be disabled with
+ * `plugins.entries.search-subagent.config.cliFallback: false`.
+ */
 const defaultCliAgentRunner: CliAgentRunner = (args, timeoutMs) =>
   new Promise((resolve, reject) => {
     execFile(
@@ -247,6 +258,13 @@ export function registerSearchSubagentTool(
         reply = extractAssistantReply(messages);
       } catch (error) {
         if (!isSubagentRuntimeUnavailableError(error)) throw error;
+        if (!config.cliFallback) {
+          throw new Error(
+            "The in-process subagent runtime is unavailable here and the CLI fallback is disabled " +
+              "(plugins.entries.search-subagent.config.cliFallback: false). " +
+              "Re-enable it or invoke the tool from an in-gateway context.",
+          );
+        }
         api.logger?.info?.(`[${TOOL_NAME}] runtime subagent unavailable in this process; falling back to the openclaw CLI`);
         transport = "cli";
         const stdout = await runCliAgent(

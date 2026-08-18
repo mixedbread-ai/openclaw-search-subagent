@@ -25,5 +25,6 @@ export function parsePluginConfig(raw) {
         apiKey: readString(source, "apiKey"),
         agentId: readString(source, "agentId") ?? DEFAULT_SEARCH_AGENT_ID,
         timeoutSeconds: readPositiveNumber(source, "timeoutSeconds") ?? DEFAULT_TIMEOUT_SECONDS,
+        cliFallback: source.cliFallback !== false,
     };
 }
