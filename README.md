@@ -161,16 +161,6 @@ openclaw agent --session-key "agent:main:t-$(date +%s)" \
   -m "Use the search_subagent tool with task: 'find usages of process.env'" --json
 ```
 
-## Publish
-
-```bash
-npm i -g clawhub
-clawhub login
-clawhub package validate .
-clawhub package publish mixedbread/openclaw-search-subagent --dry-run
-clawhub package publish mixedbread/openclaw-search-subagent
-```
-
 ## Troubleshooting
 
 - **The agent searches itself instead of using the tool** — common when the
