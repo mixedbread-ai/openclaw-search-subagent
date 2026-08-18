@@ -34,82 +34,70 @@ The tool has two transports and picks automatically:
 ## Install
 
 ```bash
-# From ClawHub (once published)
 openclaw plugins install clawhub:mixedbread/openclaw-search-subagent
-
-# Or from a local checkout
-openclaw plugins install --link /path/to/mixedbread-openclaw-search-subagent
-
-openclaw plugins enable search-subagent
+openclaw models auth login          # pick Mixedbread → paste your API key
 openclaw gateway restart
 ```
 
-## Configure
+That's the whole setup. Install auto-enables the plugin, and the auth step
+writes everything else into your config for you:
 
-### 1. API key
+- **`tools.alsoAllow: ["search_subagent"]`** — the default `coding` tool
+  profile excludes plugin tools, so the tool is allowlisted.
+- **A read-only `search` agent** in `agents.list`, pinned to
+  `mixedbread/toast-1` with `read` + `exec` only.
+- **Model-override authorization** for fallback spawns
+  (`plugins.entries.search-subagent.subagent`).
 
-```bash
-export MIXEDBREAD_API_KEY=mxb_...        # or:
-openclaw models auth login               # pick Mixedbread → API key
-```
+The defaults are idempotent and never overwrite your config — an existing
+`search` agent or allowlist entry is left untouched. If you configure the key
+another way (e.g. `MIXEDBREAD_API_KEY` in the gateway env), `openclaw doctor
+--fix` applies the same defaults, and the plugin auto-enables whenever a
+Mixedbread signal (env key, provider config, or a `mixedbread/*` agent model)
+is present.
 
-### 2. Allow the tool (required with `tools.profile: "coding"`)
+For a local checkout use
+`openclaw plugins install --link /path/to/mixedbread-openclaw-search-subagent`
+instead of the ClawHub spec.
 
-The default `coding` tool profile is a base allowlist that **excludes plugin
-tools**. Add the tool to `alsoAllow` in `~/.openclaw/openclaw.json`:
+## Configuration reference
+
+Everything below is written automatically by the install flow; it's documented
+here for customization.
+
+### The generated config
 
 ```json5
 {
-  "tools": {
-    "profile": "coding",
-    "alsoAllow": ["search_subagent"]
-  }
-}
-```
-
-### 3. Dedicated search agent (recommended)
-
-The tool targets an agent named `search` (configurable) so the subagent runs
-with a minimal read-only toolset and Toast-1 as its pinned model:
-
-```json5
-{
+  "tools": { "alsoAllow": ["search_subagent"] },
   "agents": {
     "list": [
-      { "id": "main", "default": true },
       {
         "id": "search",
         "name": "Search",
         "description": "Read-only local search agent powered by Mixedbread Toast-1.",
         "model": "mixedbread/toast-1",
-        "tools": { "profile": "coding", "allow": ["read", "exec"] }
+        "tools": { "allow": ["read", "exec"] }
       }
     ]
-  }
-}
-```
-
-If no `search` agent exists, the tool falls back to the calling agent with a
-`mixedbread/toast-1` model override. Plugin-initiated model overrides are
-policy-gated — authorize them once:
-
-```json5
-{
+  },
   "plugins": {
     "entries": {
       "search-subagent": {
         "enabled": true,
-        "subagent": {
-          "allowModelOverride": true,
-          "allowedModels": ["mixedbread/toast-1"]
-        }
+        "subagent": { "allowModelOverride": true, "allowedModels": ["mixedbread/toast-1"] }
       }
     }
   }
 }
 ```
 
-### 4. Plugin options (all optional)
+The tool targets the `search` agent so subagents run with a minimal read-only
+toolset. If no `search` agent exists, it falls back to the calling agent with a
+`mixedbread/toast-1` model override — that's what the policy-gated
+`subagent.allowModelOverride` block authorizes.
+
+### Plugin options (all optional)
 
 Set under `plugins.entries.search-subagent.config`:
 

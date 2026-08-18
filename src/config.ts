@@ -1,4 +1,5 @@
 export const PLUGIN_ID = "search-subagent";
+export const TOOL_NAME = "search_subagent";
 export const PROVIDER_ID = "mixedbread";
 export const DEFAULT_MODEL_ID = "toast-1";
 export const DEFAULT_MODEL_REF = `${PROVIDER_ID}/${DEFAULT_MODEL_ID}`;

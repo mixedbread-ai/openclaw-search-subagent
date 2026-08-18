@@ -15,6 +15,9 @@
     "providers": [
       {
         "id": "mixedbread",
+        "authMethods": [
+          "api-key"
+        ],
         "envVars": [
           "MIXEDBREAD_API_KEY"
         ]

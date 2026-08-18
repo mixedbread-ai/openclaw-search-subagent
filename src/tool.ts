@@ -2,9 +2,9 @@ import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { Type } from "typebox";
 import type { OpenClawPluginApi, OpenClawPluginToolContext } from "openclaw/plugin-sdk/plugin-entry";
-import { DEFAULT_MODEL_ID, PROVIDER_ID, type SearchSubagentConfig } from "./config.js";
+import { DEFAULT_MODEL_ID, PROVIDER_ID, TOOL_NAME, type SearchSubagentConfig } from "./config.js";
 
-export const TOOL_NAME = "search_subagent";
+export { TOOL_NAME };
 
 const SEARCH_SYSTEM_PROMPT = [
   "You are a read-only search subagent. Answer the search task by searching",

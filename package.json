@@ -11,6 +11,7 @@
   "files": [
     "dist",
     "src",
+    "setup-api.ts",
     "docs",
     "openclaw.plugin.json",
     "README.md"

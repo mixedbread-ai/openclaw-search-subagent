@@ -1,19 +1,21 @@
+/**
+ * Setup-surface entry point (loaded from `setup-api.*` by convention).
+ *
+ * OpenClaw's setup registry executes this file — not the main extension — for
+ * metadata-only flows: `openclaw models auth login` provider discovery,
+ * config migrations in `openclaw doctor` / onboarding, and auto-enable
+ * probes. Register only setup-relevant surfaces here.
+ */
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
-import { PLUGIN_ID, PROVIDER_ID, parsePluginConfig } from "./config.js";
-import { registerMixedbreadProvider } from "./provider.js";
-import { applySearchSubagentDefaults } from "./setup.js";
-import { registerSearchSubagentTool } from "./tool.js";
+import { PLUGIN_ID, PROVIDER_ID, parsePluginConfig } from "./src/config.js";
+import { registerMixedbreadProvider } from "./src/provider.js";
+import { applySearchSubagentDefaults } from "./src/setup.js";
 
 export default definePluginEntry({
   id: PLUGIN_ID,
   name: "Mixedbread Search Subagent",
-  description:
-    "Registers the Mixedbread Toast-1 model provider and a search_subagent tool " +
-    "that delegates local grep/ripgrep searches to a Toast-1 subagent.",
   register(api) {
-    const config = parsePluginConfig(api.pluginConfig);
-    registerMixedbreadProvider(api, config);
-    registerSearchSubagentTool(api, config);
+    registerMixedbreadProvider(api, parsePluginConfig(api.pluginConfig));
     api.registerConfigMigration((cfg) => applySearchSubagentDefaults(cfg));
     api.registerAutoEnableProbe((ctx) => {
       if (ctx.env?.MIXEDBREAD_API_KEY) return "MIXEDBREAD_API_KEY is set";

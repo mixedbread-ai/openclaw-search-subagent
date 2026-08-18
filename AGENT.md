@@ -81,6 +81,16 @@ These cost real debugging time; don't relearn them:
    provider and log `ctx.tools.map(t => t.name)`.
 7. The linked-plugin loader executes **`dist/index.js`** (not `src/index.ts`),
    so every code change needs `npm run build` + `openclaw gateway restart`.
+8. **Setup flows do not load the main extension.** `openclaw doctor`,
+   onboarding, auth-provider discovery, config migrations, and auto-enable
+   probes execute the root-level **`setup-api.ts`** entry (loaded by filename
+   convention) with a metadata-only API. `api.registerConfigMigration` /
+   `registerAutoEnableProbe` calls in the main entry are invisible there —
+   register them in `setup-api.ts` too. The api-key auth method's
+   `applyConfig` hook runs on `models auth login` success and is the primary
+   zero-config path; doctor's migration pass is the fallback. Verified on a
+   fresh isolated profile (`openclaw --profile <name>`), which is also the
+   cleanest way to test install UX end to end.
 
 ## Conventions
 

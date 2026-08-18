@@ -9,6 +9,7 @@ import {
   PROVIDER_ID,
   type SearchSubagentConfig,
 } from "./config.js";
+import { applySearchSubagentDefaults } from "./setup.js";
 
 export function buildProvider(config?: Pick<SearchSubagentConfig, "baseUrl" | "apiKey">): ModelProviderConfig {
   return {
@@ -52,9 +53,13 @@ export function registerMixedbreadProvider(api: OpenClawPluginApi, config: Searc
         envVar: "MIXEDBREAD_API_KEY",
         promptMessage: "Enter your Mixedbread API key",
         defaultModel: DEFAULT_MODEL_REF,
+        preserveExistingPrimary: true,
         expectedProviders: [PROVIDER_ID],
         noteTitle: "Mixedbread",
         noteMessage: "Uses https://api.mixedbread.com/v1 (OpenAI-compatible).",
+        // Auth login is the natural setup moment: write everything the
+        // search_subagent tool needs so no manual config edits remain.
+        applyConfig: (cfg) => applySearchSubagentDefaults(cfg)?.config ?? cfg,
       }),
     ],
     catalog: {
